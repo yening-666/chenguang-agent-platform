@@ -138,3 +138,22 @@ dmypy.json
 
 # Cython debug symbols
 cython_debug/
+
+# ---- Project-specific ignores (2026-11-07) ----
+
+# Frontend dependencies
+node_modules/
+
+# SQLite local database
+chenguang.db
+*.db.bak_*
+*.sqlite3
+
+# Runtime logs and scratch output
+logs/
+output.txt
+
+# IDE / editor / tool directories
+.vscode/
+.workbuddy/
+.aigo123/
