@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>辰光 Agent - 403 无权限</title>
+<link rel="stylesheet" href="assets/css/rbac.css">
+</head>
+<body>
+<div class="denied-page">
+  <div class="denied-card">
+    <div class="denied-code">403</div>
+    <div class="denied-title">无权限访问</div>
+    <p class="denied-desc">
+      您的账号已通过认证，但不具备访问该资源所需的权限。<br>
+      如需开通，请联系系统管理员为您的角色分配对应权限。
+    </p>
+    <div class="denied-perm">缺少权限：<b id="needPerm">role:assign_permissions</b></div>
+    <div class="denied-actions">
+      <button class="btn btn-outline" onclick="history.back()">返回上一页</button>
+      <a class="btn btn-primary" href="dashboard.html">返回工作台</a>
+    </div>
+    <p class="denied-desc" style="margin-top:20px; font-size:12px;">
+      后端语义：HTTP 200 + 业务码 403（对齐 BizException 约定，PRD 4.2 / 开放问题 Q2）<br>
+      前端处理：apiClient 统一识别 code=403 → 跳转本页；本次拒绝已写入审计日志（FR-8）
+    </p>
+  </div>
+</div>
+
+<script>
+  /* 演示：URL 带 ?perm=xxx 时展示对应缺失权限码 */
+  const q = new URLSearchParams(location.search);
+  if (q.get('perm')) document.getElementById('needPerm').textContent = q.get('perm');
+</script>
+</body>
+</html>

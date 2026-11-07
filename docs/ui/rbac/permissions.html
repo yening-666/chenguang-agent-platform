@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>辰光 Agent - 权限管理</title>
+<link rel="stylesheet" href="assets/css/rbac.css">
+</head>
+<body>
+<div class="app">
+  <aside class="sidebar">
+    <div class="sidebar-header"><div class="logo"><span class="logo-icon">辰</span>辰光 Agent</div></div>
+    <nav class="sidebar-nav">
+      <div class="group-title">概览</div>
+      <a href="dashboard.html" data-key="dashboard"><span class="nav-icon">▣</span>工作台<span class="nav-perm">登录即可</span></a>
+      <div class="group-title">业务管理</div>
+      <a href="#" data-key="agents" data-perm="agent:list"><span class="nav-icon">🤖</span>Agent 管理<span class="nav-perm">agent:list</span></a>
+      <a href="#" data-key="models" data-perm="model:list provider:list"><span class="nav-icon">🧠</span>模型管理<span class="nav-perm">model:list</span></a>
+      <a href="#" data-key="prompts" data-perm="prompt:list"><span class="nav-icon">📝</span>Prompt 管理<span class="nav-perm">prompt:list</span></a>
+      <a href="#" data-key="knowledge" data-perm="knowledge:list"><span class="nav-icon">📚</span>知识库<span class="nav-perm">knowledge:list</span></a>
+      <a href="#" data-key="tools" data-perm="tool:list"><span class="nav-icon">🔧</span>工具管理<span class="nav-perm">tool:list</span></a>
+      <div class="group-title">系统管理</div>
+      <a href="users.html" data-key="users" data-perm="user:list"><span class="nav-icon">👤</span>用户管理<span class="nav-perm">user:list</span></a>
+      <a href="roles.html" data-key="roles" data-perm="role:list"><span class="nav-icon">🛡️</span>角色管理<span class="nav-perm">role:list</span></a>
+      <a href="permissions.html" data-key="permissions" data-perm="permission:list"><span class="nav-icon">🔑</span>权限管理<span class="nav-perm">permission:list</span></a>
+    </nav>
+    <div class="sidebar-foot">RBAC 授权原型 · 对齐 PROJECT_SPEC_V2.md</div>
+  </aside>
+
+  <div class="main">
+    <header class="topbar">
+      <div class="breadcrumb">系统管理 / <b>权限管理</b></div>
+      <div class="topbar-right">
+        <div class="role-switcher">
+          权限演示身份
+          <select id="identitySelect">
+            <option value="superadmin">超级管理员 admin</option>
+            <option value="sysadmin">系统管理员 sysadmin</option>
+            <option value="viewer">普通用户 viewer</option>
+          </select>
+        </div>
+        <div class="user-chip">
+          <span class="avatar">AD</span>
+          <div class="meta"><div class="name">admin</div><div class="role">超级管理员</div></div>
+        </div>
+      </div>
+    </header>
+
+    <div class="content">
+      <div class="demo-bar">💡 <b>本页演示：</b>权限列表按 <b>module 分组筛选</b>（FR-7 / FR-1 新增 module 字段）；创建权限时强制选择模块，权限码遵循 <code class="perm">模块:操作</code> 规范（PRD 4.2）。删除权限需 <code class="perm">permission:delete</code>，删除前提示接口引用检查。</div>
+
+      <div class="stat-grid">
+        <div class="stat"><div class="label">权限总数</div><div class="value blue">32</div><div class="trend">已按模块归组</div></div>
+        <div class="stat"><div class="label">模块数</div><div class="value green">9</div><div class="trend">user / role / permission / knowledge ...</div></div>
+        <div class="stat"><div class="label">接口已挂接</div><div class="value amber">21</div><div class="trend">系统管理模块 21/21（FR-2）</div></div>
+        <div class="stat"><div class="label">待挂接权限码</div><div class="value red">11</div><div class="trend">业务模块实现时逐条挂接</div></div>
+      </div>
+
+      <div class="card">
+        <div class="card-head">
+          <h2>权限列表</h2>
+          <span class="sub">GET /api/v1/permissions/search · 权限码 permission:list</span>
+          <div class="toolbar" style="margin-left:auto;">
+            <select class="select" id="moduleFilter" style="width:160px;">
+              <option value="">全部模块</option>
+              <option value="user">user</option>
+              <option value="role">role</option>
+              <option value="permission">permission</option>
+              <option value="knowledge">knowledge</option>
+              <option value="agent">agent</option>
+              <option value="model">model</option>
+              <option value="prompt">prompt</option>
+              <option value="tool">tool</option>
+              <option value="provider">provider</option>
+            </select>
+            <input class="input" placeholder="搜索权限码 / 名称" style="width:180px;">
+            <button class="btn btn-primary" data-action-perm="permission:create" onclick="openModal('permModal')">+ 创建权限</button>
+          </div>
+        </div>
+        <div style="overflow-x:auto;">
+          <table class="table" id="permTable">
+            <thead>
+              <tr><th>ID</th><th>权限编码</th><th>权限名称</th><th>模块</th><th>接口挂接</th><th>描述</th><th style="width:130px;">操作</th></tr>
+            </thead>
+            <tbody>
+              <tr data-module="user">
+                <td>1</td><td><code class="perm">user:list</code></td><td>用户列表</td>
+                <td><span class="badge badge-mod-user">user</span></td>
+                <td><span class="badge badge-green">2 个接口</span></td><td>分页搜索用户</td>
+                <td class="actions">
+                  <button class="btn btn-outline btn-sm" data-action-perm="permission:update" onclick="openModal('permModal')">编辑</button>
+                  <button class="btn btn-outline btn-sm" data-action-perm="permission:delete" onclick="toast('需先检查接口引用（Mock）')">删除</button>
+                </td>
+              </tr>
+              <tr data-module="user">
+                <td>2</td><td><code class="perm">user:assign_roles</code></td><td>分配角色</td>
+                <td><span class="badge badge-mod-user">user</span></td>
+                <td><span class="badge badge-green">1 个接口</span></td><td>PUT /users/{id}/roles</td>
+                <td class="actions">
+                  <button class="btn btn-outline btn-sm" data-action-perm="permission:update" onclick="openModal('permModal')">编辑</button>
+                  <button class="btn btn-outline btn-sm" data-action-perm="permission:delete" onclick="toast('需先检查接口引用（Mock）')">删除</button>
+                </td>
+              </tr>
+              <tr data-module="role">
+                <td>7</td><td><code class="perm">role:assign_permissions</code></td><td>分配权限</td>
+                <td><span class="badge badge-mod-role">role</span></td>
+                <td><span class="badge badge-green">1 个接口</span></td><td>PUT /roles/{id}/permissions</td>
+                <td class="actions">
+                  <button class="btn btn-outline btn-sm" data-action-perm="permission:update" onclick="openModal('permModal')">编辑</button>
+                  <button class="btn btn-outline btn-sm" data-action-perm="permission:delete" onclick="toast('需先检查接口引用（Mock）')">删除</button>
+                </td>
+              </tr>
+              <tr data-module="permission">
+                <td>13</td><td><code class="perm">permission:delete</code></td><td>删除权限</td>
+                <td><span class="badge badge-mod-permission">permission</span></td>
+                <td><span class="badge badge-green">1 个接口</span></td><td>DELETE /permissions/{id}</td>
+                <td class="actions">
+                  <button class="btn btn-outline btn-sm" data-action-perm="permission:update" onclick="openModal('permModal')">编辑</button>
+                  <button class="btn btn-outline btn-sm" data-action-perm="permission:delete" onclick="toast('需先检查接口引用（Mock）')">删除</button>
+                </td>
+              </tr>
+              <tr data-module="knowledge">
+                <td>18</td><td><code class="perm">knowledge:upload_document</code></td><td>上传文档</td>
+                <td><span class="badge badge-mod-knowledge">knowledge</span></td>
+                <td><span class="badge badge-amber">待挂接</span></td><td>POST /{kb_id}/documents</td>
+                <td class="actions">
+                  <button class="btn btn-outline btn-sm" data-action-perm="permission:update" onclick="openModal('permModal')">编辑</button>
+                  <button class="btn btn-outline btn-sm" data-action-perm="permission:delete" onclick="toast('需先检查接口引用（Mock）')">删除</button>
+                </td>
+              </tr>
+              <tr data-module="agent">
+                <td>23</td><td><code class="perm">agent:publish</code></td><td>发布 Agent</td>
+                <td><span class="badge badge-mod-agent">agent</span></td>
+                <td><span class="badge badge-amber">待挂接</span></td><td>POST /agents/{id}/publish</td>
+                <td class="actions">
+                  <button class="btn btn-outline btn-sm" data-action-perm="permission:update" onclick="openModal('permModal')">编辑</button>
+                  <button class="btn btn-outline btn-sm" data-action-perm="permission:delete" onclick="toast('需先检查接口引用（Mock）')">删除</button>
+                </td>
+              </tr>
+              <tr data-module="model">
+                <td>26</td><td><code class="perm">model:test_connection</code></td><td>模型连接测试</td>
+                <td><span class="badge badge-mod-model">model</span></td>
+                <td><span class="badge badge-amber">待挂接</span></td><td>POST /models/{id}/test</td>
+                <td class="actions">
+                  <button class="btn btn-outline btn-sm" data-action-perm="permission:update" onclick="openModal('permModal')">编辑</button>
+                  <button class="btn btn-outline btn-sm" data-action-perm="permission:delete" onclick="toast('需先检查接口引用（Mock）')">删除</button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="pagination">
+          <button class="page-btn">‹</button>
+          <button class="page-btn active">1</button>
+          <button class="page-btn">2</button>
+          <button class="page-btn">3</button>
+          <button class="page-btn">›</button>
+          <span class="info">共 32 条 · 每页 10 条</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== 创建/编辑权限弹窗（module 强制选择，FR-1） ==================== -->
+<div class="modal-overlay" id="permModal">
+  <div class="modal">
+    <div class="modal-head"><h3>创建权限</h3><button class="close" data-close-modal="permModal">×</button></div>
+    <div class="modal-body">
+      <div class="form-row">
+        <div class="form-item">
+          <label>模块 <span class="req">*</span></label>
+          <select class="select" id="permModule">
+            <option value="">请选择模块</option>
+            <option>user</option><option>role</option><option>permission</option>
+            <option>knowledge</option><option>agent</option><option>model</option>
+            <option>prompt</option><option>tool</option><option>provider</option>
+          </select>
+          <div class="hint">模块下拉与后端 permissions.module 字段联动（FR-1）</div>
+        </div>
+        <div class="form-item">
+          <label>操作 <span class="req">*</span></label>
+          <input class="input" placeholder="如 list / create / upload_document">
+        </div>
+      </div>
+      <div class="form-item">
+        <label>权限编码 <span class="req">*</span></label>
+        <input class="input" id="permCode" readonly placeholder="选择模块与操作后自动生成">
+        <div class="hint">自动拼接为 模块:操作，创建后不可修改</div>
+      </div>
+      <div class="form-item"><label>权限名称 <span class="req">*</span></label><input class="input" placeholder="如：上传文档"></div>
+      <div class="form-item"><label>描述</label><input class="input" placeholder="权限用途说明"></div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-outline" data-close-modal="permModal">取消</button>
+      <button class="btn btn-primary" onclick="closeModal('permModal'); toast('权限已保存（Mock）')">保存</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast"><span class="dot"></span><span class="msg"></span></div>
+<script src="assets/js/rbac-common.js"></script>
+<script>
+  initShell('permissions');
+  /* 模块筛选（FR-7） */
+  document.getElementById('moduleFilter').addEventListener('change', (e) => {
+    const mod = e.target.value;
+    document.querySelectorAll('#permTable tbody tr').forEach((tr) => {
+      tr.style.display = (!mod || tr.dataset.module === mod) ? '' : 'none';
+    });
+    toast(mod ? `已按模块筛选：${mod}` : '已显示全部模块');
+  });
+  /* 权限码自动拼接 */
+  const modSel = document.getElementById('permModule');
+  const codeInput = document.getElementById('permCode');
+  modSel.addEventListener('change', () => {
+    const mod = modSel.value;
+    codeInput.value = mod ? `${mod}:` : '';
+    codeInput.readOnly = false;
+  });
+</script>
+</body>
+</html>

@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>辰光 Agent - 登录</title>
+<link rel="stylesheet" href="assets/css/rbac.css">
+</head>
+<body>
+<div class="login-page">
+  <div class="login-card">
+    <div class="brand"><span class="logo-icon">辰</span></div>
+    <h1>辰光 Agent 平台</h1>
+    <p class="sub">企业级 AI Agent 管理平台 · RBAC 授权原型</p>
+    <form id="loginForm">
+      <div class="form-item">
+        <label>用户名 <span class="req">*</span></label>
+        <input class="input" id="username" placeholder="请输入用户名" autocomplete="off">
+      </div>
+      <div class="form-item">
+        <label>密码 <span class="req">*</span></label>
+        <input class="input" id="password" type="password" placeholder="请输入密码">
+      </div>
+      <div class="form-item">
+        <label>验证码 <span class="req">*</span></label>
+        <div class="captcha-row">
+          <input class="input" id="captchaInput" placeholder="4 位验证码" maxlength="4" autocomplete="off">
+          <canvas class="captcha-img" id="captchaCanvas" width="108" height="36" title="点击刷新"></canvas>
+        </div>
+        <div class="hint">模拟后端 GET /api/v1/captcha：验证码存入 Redis，5 分钟过期</div>
+      </div>
+      <button class="btn btn-primary" type="submit" style="width:100%; justify-content:center; height:40px; margin-top:6px;">登 录</button>
+    </form>
+    <div class="login-tip">
+      <b>内置账号（Mock）</b><br>
+      超级管理员 admin / 123456 —— 直通全部权限<br>
+      系统管理员 sysadmin / 123456 —— 23 项权限<br>
+      普通用户 viewer / 123456 —— 仅各模块只读权限
+    </div>
+  </div>
+</div>
+
+<script src="assets/js/rbac-common.js"></script>
+<script>
+  drawCaptcha('captchaCanvas');
+  document.getElementById('captchaCanvas').addEventListener('click', () => drawCaptcha('captchaCanvas'));
+
+  document.getElementById('loginForm').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const user = document.getElementById('username').value.trim();
+    const code = document.getElementById('captchaInput').value.trim();
+    const real = document.getElementById('captchaCanvas').dataset.code;
+    if (!user) return toast('请输入用户名');
+    if (!code) return toast('请输入验证码');
+    if (code.toUpperCase() !== real) {
+      drawCaptcha('captchaCanvas');
+      return toast('验证码错误，已刷新');
+    }
+    /* Mock 登录：按用户名匹配身份 */
+    const map = { admin: 'superadmin', sysadmin: 'sysadmin', viewer: 'viewer' };
+    CURRENT = map[user.toLowerCase()] || 'viewer';
+    toast('登录成功（Mock），正在跳转工作台 ...');
+    setTimeout(() => { location.href = 'dashboard.html?identity=' + CURRENT; }, 900);
+  });
+</script>
+</body>
+</html>

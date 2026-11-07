@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>辰光 Agent - 工作台</title>
+<link rel="stylesheet" href="assets/css/rbac.css">
+</head>
+<body>
+<div class="app">
+  <!-- ==================== 侧边栏（按权限显隐，FR-5） ==================== -->
+  <aside class="sidebar">
+    <div class="sidebar-header"><div class="logo"><span class="logo-icon">辰</span>辰光 Agent</div></div>
+    <nav class="sidebar-nav">
+      <div class="group-title">概览</div>
+      <a href="dashboard.html" data-key="dashboard"><span class="nav-icon">▣</span>工作台<span class="nav-perm">登录即可</span></a>
+      <div class="group-title">业务管理</div>
+      <a href="#" data-key="agents" data-perm="agent:list"><span class="nav-icon">🤖</span>Agent 管理<span class="nav-perm">agent:list</span></a>
+      <a href="#" data-key="models" data-perm="model:list provider:list"><span class="nav-icon">🧠</span>模型管理<span class="nav-perm">model:list</span></a>
+      <a href="#" data-key="prompts" data-perm="prompt:list"><span class="nav-icon">📝</span>Prompt 管理<span class="nav-perm">prompt:list</span></a>
+      <a href="#" data-key="knowledge" data-perm="knowledge:list"><span class="nav-icon">📚</span>知识库<span class="nav-perm">knowledge:list</span></a>
+      <a href="#" data-key="tools" data-perm="tool:list"><span class="nav-icon">🔧</span>工具管理<span class="nav-perm">tool:list</span></a>
+      <div class="group-title">系统管理</div>
+      <a href="users.html" data-key="users" data-perm="user:list"><span class="nav-icon">👤</span>用户管理<span class="nav-perm">user:list</span></a>
+      <a href="roles.html" data-key="roles" data-perm="role:list"><span class="nav-icon">🛡️</span>角色管理<span class="nav-perm">role:list</span></a>
+      <a href="permissions.html" data-key="permissions" data-perm="permission:list"><span class="nav-icon">🔑</span>权限管理<span class="nav-perm">permission:list</span></a>
+    </nav>
+    <div class="sidebar-foot">RBAC 授权原型 · 对齐 PROJECT_SPEC_V2.md</div>
+  </aside>
+
+  <!-- ==================== 主区域 ==================== -->
+  <div class="main">
+    <header class="topbar">
+      <div class="breadcrumb">概览 / <b>工作台</b></div>
+      <div class="topbar-right">
+        <div class="role-switcher">
+          权限演示身份
+          <select id="identitySelect">
+            <option value="superadmin">超级管理员 admin</option>
+            <option value="sysadmin">系统管理员 sysadmin</option>
+            <option value="viewer">普通用户 viewer</option>
+          </select>
+        </div>
+        <div class="user-chip">
+          <span class="avatar">AD</span>
+          <div class="meta"><div class="name">admin</div><div class="role">超级管理员</div></div>
+        </div>
+      </div>
+    </header>
+
+    <div class="content">
+      <div class="demo-bar">💡 <b>原型交互说明：</b>通过右上角「权限演示身份」切换用户，侧边栏菜单与页面按钮将按权限集合实时过滤（对齐 PRD FR-5 / FR-3）。</div>
+
+      <div class="stat-grid">
+        <div class="stat"><div class="label">当前身份持有权限</div><div class="value blue" id="statPerms">32</div><div class="trend">含超管直通全部权限码</div></div>
+        <div class="stat"><div class="label">系统管理接口鉴权覆盖</div><div class="value green">21 / 21</div><div class="trend">本期全部落地（FR-2）</div></div>
+        <div class="stat"><div class="label">业务接口待挂接</div><div class="value amber">52</div><div class="trend">knowledge / agent / model 等 6 模块</div></div>
+        <div class="stat"><div class="label">近 7 日 403 拒绝</div><div class="value red">12</div><div class="trend">FR-8 结构化日志，可按 user_id 检索</div></div>
+      </div>
+
+      <div style="display:grid; grid-template-columns: 1.4fr 1fr; gap:16px; align-items:start;">
+        <!-- 鉴权矩阵摘要 -->
+        <div class="card">
+          <div class="card-head">
+            <h2>接口鉴权矩阵摘要</h2>
+            <span class="sub">权限码规范：模块:操作（对齐 PRD 4.2）</span>
+          </div>
+          <div class="card-body" style="padding:0;">
+            <table class="table">
+              <thead><tr><th>模块</th><th>接口示例</th><th>权限码</th><th>状态</th></tr></thead>
+              <tbody>
+                <tr><td><span class="badge badge-mod-user">user</span></td><td>PUT /users/{id}/roles</td><td><code class="perm">user:assign_roles</code></td><td><span class="badge badge-green">已覆盖</span></td></tr>
+                <tr><td><span class="badge badge-mod-role">role</span></td><td>PUT /roles/{id}/permissions</td><td><code class="perm">role:assign_permissions</code></td><td><span class="badge badge-green">已覆盖</span></td></tr>
+                <tr><td><span class="badge badge-mod-permission">permission</span></td><td>DELETE /permissions/{id}</td><td><code class="perm">permission:delete</code></td><td><span class="badge badge-green">已覆盖</span></td></tr>
+                <tr><td><span class="badge badge-mod-knowledge">knowledge</span></td><td>POST /{kb_id}/documents</td><td><code class="perm">knowledge:upload_document</code></td><td><span class="badge badge-amber">待挂接</span></td></tr>
+                <tr><td><span class="badge badge-mod-agent">agent</span></td><td>POST /agents</td><td><code class="perm">agent:create</code></td><td><span class="badge badge-amber">待挂接</span></td></tr>
+                <tr><td><span class="badge badge-mod-model">model</span></td><td>GET /models</td><td><code class="perm">model:list</code></td><td><span class="badge badge-amber">待挂接</span></td></tr>
+              </tbody>
+            </table>
+            <div class="matrix-note" style="padding: 0 20px 16px;">完整 21 条系统管理接口映射见 <b>docs/spec/PROJECT_SPEC_V2.md</b> 第八节。</div>
+          </div>
+        </div>
+
+        <!-- 最近权限变更 -->
+        <div class="card">
+          <div class="card-head"><h2>最近权限变更</h2><span class="sub">触发缓存精确失效（FR-4）</span></div>
+          <div class="card-body">
+            <ul class="timeline">
+              <li><span class="t">23:18</span><div><b>sysadmin</b> 为角色「系统管理员」分配权限 <code class="perm">user:assign_roles</code>，已失效 3 名用户权限缓存</div></li>
+              <li><span class="t">22:41</span><div><b>admin</b> 创建权限 <code class="perm">agent:publish</code>（模块 agent）</div></li>
+              <li><span class="t">21:07</span><div><b>admin</b> 为用户 <b>viewer</b> 调整角色为「普通用户」，缓存已失效</div></li>
+              <li><span class="t">20:33</span><div><b>sysadmin</b> 修改权限 <code class="perm">knowledge:upload_document</code> 描述</div></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast"><span class="dot"></span><span class="msg"></span></div>
+<script src="assets/js/rbac-common.js"></script>
+<script>
+  /* 支持 login.html 跳转带身份参数 */
+  const q = new URLSearchParams(location.search);
+  if (q.get('identity') && MOCK_IDENTITY[q.get('identity')]) CURRENT = q.get('identity');
+  initShell('dashboard');
+  document.addEventListener('identity:changed', () => {
+    document.getElementById('statPerms').textContent = permCount();
+  });
+  document.getElementById('statPerms').textContent = permCount();
+</script>
+</body>
+</html>

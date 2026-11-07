@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>辰光 Agent - 用户管理</title>
+<link rel="stylesheet" href="assets/css/rbac.css">
+</head>
+<body>
+<div class="app">
+  <aside class="sidebar">
+    <div class="sidebar-header"><div class="logo"><span class="logo-icon">辰</span>辰光 Agent</div></div>
+    <nav class="sidebar-nav">
+      <div class="group-title">概览</div>
+      <a href="dashboard.html" data-key="dashboard"><span class="nav-icon">▣</span>工作台<span class="nav-perm">登录即可</span></a>
+      <div class="group-title">业务管理</div>
+      <a href="#" data-key="agents" data-perm="agent:list"><span class="nav-icon">🤖</span>Agent 管理<span class="nav-perm">agent:list</span></a>
+      <a href="#" data-key="models" data-perm="model:list provider:list"><span class="nav-icon">🧠</span>模型管理<span class="nav-perm">model:list</span></a>
+      <a href="#" data-key="prompts" data-perm="prompt:list"><span class="nav-icon">📝</span>Prompt 管理<span class="nav-perm">prompt:list</span></a>
+      <a href="#" data-key="knowledge" data-perm="knowledge:list"><span class="nav-icon">📚</span>知识库<span class="nav-perm">knowledge:list</span></a>
+      <a href="#" data-key="tools" data-perm="tool:list"><span class="nav-icon">🔧</span>工具管理<span class="nav-perm">tool:list</span></a>
+      <div class="group-title">系统管理</div>
+      <a href="users.html" data-key="users" data-perm="user:list"><span class="nav-icon">👤</span>用户管理<span class="nav-perm">user:list</span></a>
+      <a href="roles.html" data-key="roles" data-perm="role:list"><span class="nav-icon">🛡️</span>角色管理<span class="nav-perm">role:list</span></a>
+      <a href="permissions.html" data-key="permissions" data-perm="permission:list"><span class="nav-icon">🔑</span>权限管理<span class="nav-perm">permission:list</span></a>
+    </nav>
+    <div class="sidebar-foot">RBAC 授权原型 · 对齐 PROJECT_SPEC_V2.md</div>
+  </aside>
+
+  <div class="main">
+    <header class="topbar">
+      <div class="breadcrumb">系统管理 / <b>用户管理</b></div>
+      <div class="topbar-right">
+        <div class="role-switcher">
+          权限演示身份
+          <select id="identitySelect">
+            <option value="superadmin">超级管理员 admin</option>
+            <option value="sysadmin">系统管理员 sysadmin</option>
+            <option value="viewer">普通用户 viewer</option>
+          </select>
+        </div>
+        <div class="user-chip">
+          <span class="avatar">AD</span>
+          <div class="meta"><div class="name">admin</div><div class="role">超级管理员</div></div>
+        </div>
+      </div>
+    </header>
+
+    <div class="content">
+      <div class="demo-bar">💡 <b>本页演示：</b>接口 <code class="perm">GET /users/search</code> 需 <code class="perm">user:list</code>；「分配角色」需 <code class="perm">user:assign_roles</code>（FR-2 鉴权矩阵）。切换为普通用户后，写操作按钮将禁用。</div>
+
+      <div class="stat-grid">
+        <div class="stat"><div class="label">用户总数</div><div class="value blue">26</div><div class="trend">活跃 24 · 禁用 2</div></div>
+        <div class="stat"><div class="label">已分配角色用户</div><div class="value green">25</div><div class="trend">1 人未分配角色</div></div>
+        <div class="stat"><div class="label">今日新增</div><div class="value amber">3</div><div class="trend">近 7 日 +11</div></div>
+      </div>
+
+      <div class="card">
+        <div class="card-head">
+          <h2>用户列表</h2>
+          <span class="sub">GET /api/v1/users/search · 权限码 user:list</span>
+          <div class="toolbar" style="margin-left:auto;">
+            <input class="input" placeholder="搜索用户名 / 邮箱" style="width:200px;">
+            <button class="btn btn-outline" data-action-perm="user:create" onclick="openModal('createUserModal')">+ 创建用户</button>
+          </div>
+        </div>
+        <div style="overflow-x:auto;">
+          <table class="table">
+            <thead>
+              <tr><th>ID</th><th>用户名</th><th>邮箱</th><th>角色</th><th>状态</th><th>最后登录</th><th style="width:230px;">操作</th></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>1</td><td><b>admin</b></td><td>admin@chenguang.ai</td>
+                <td><span class="badge badge-red">超级管理员</span></td>
+                <td><span class="badge badge-green">活跃</span></td><td>2026-11-07 23:20</td>
+                <td class="actions">
+                  <button class="btn btn-outline btn-sm" data-action-perm="user:read">详情</button>
+                  <button class="btn btn-outline btn-sm" disabled title="系统内置账号">分配角色</button>
+                  <button class="btn btn-outline btn-sm" disabled title="系统内置账号">编辑</button>
+                </td>
+              </tr>
+              <tr>
+                <td>2</td><td><b>sysadmin</b></td><td>sysadmin@chenguang.ai</td>
+                <td><span class="badge badge-blue">系统管理员</span></td>
+                <td><span class="badge badge-green">活跃</span></td><td>2026-11-07 23:18</td>
+                <td class="actions">
+                  <button class="btn btn-outline btn-sm" data-action-perm="user:read">详情</button>
+                  <button class="btn btn-outline btn-sm" data-action-perm="user:assign_roles" onclick="openModal('assignRolesModal')">分配角色</button>
+                  <button class="btn btn-outline btn-sm" data-action-perm="user:update">编辑</button>
+                  <button class="btn btn-outline btn-sm btn-danger-text" data-action-perm="user:delete" onclick="toast('已提交删除确认（Mock）')">删除</button>
+                </td>
+              </tr>
+              <tr>
+                <td>3</td><td><b>viewer</b></td><td>viewer@chenguang.ai</td>
+                <td><span class="badge badge-gray">普通用户</span></td>
+                <td><span class="badge badge-green">活跃</span></td><td>2026-11-07 22:41</td>
+                <td class="actions">
+                  <button class="btn btn-outline btn-sm" data-action-perm="user:read">详情</button>
+                  <button class="btn btn-outline btn-sm" data-action-perm="user:assign_roles" onclick="openModal('assignRolesModal')">分配角色</button>
+                  <button class="btn btn-outline btn-sm" data-action-perm="user:update">编辑</button>
+                  <button class="btn btn-outline btn-sm" data-action-perm="user:delete" onclick="toast('已提交删除确认（Mock）')">删除</button>
+                </td>
+              </tr>
+              <tr>
+                <td>4</td><td><b>zhangsan</b></td><td>zhangsan@chenguang.ai</td>
+                <td><span class="badge badge-blue">系统管理员</span></td>
+                <td><span class="badge badge-green">活跃</span></td><td>2026-11-06 18:22</td>
+                <td class="actions">
+                  <button class="btn btn-outline btn-sm" data-action-perm="user:read">详情</button>
+                  <button class="btn btn-outline btn-sm" data-action-perm="user:assign_roles" onclick="openModal('assignRolesModal')">分配角色</button>
+                  <button class="btn btn-outline btn-sm" data-action-perm="user:update">编辑</button>
+                  <button class="btn btn-outline btn-sm" data-action-perm="user:delete" onclick="toast('已提交删除确认（Mock）')">删除</button>
+                </td>
+              </tr>
+              <tr>
+                <td>5</td><td><b>lisi</b></td><td>lisi@chenguang.ai</td>
+                <td><span class="badge badge-gray">普通用户</span></td>
+                <td><span class="badge badge-red">禁用</span></td><td>2026-11-02 09:15</td>
+                <td class="actions">
+                  <button class="btn btn-outline btn-sm" data-action-perm="user:read">详情</button>
+                  <button class="btn btn-outline btn-sm" data-action-perm="user:assign_roles" onclick="openModal('assignRolesModal')">分配角色</button>
+                  <button class="btn btn-outline btn-sm" data-action-perm="user:update">编辑</button>
+                  <button class="btn btn-outline btn-sm" data-action-perm="user:delete" onclick="toast('已提交删除确认（Mock）')">删除</button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="pagination">
+          <button class="page-btn">‹</button>
+          <button class="page-btn active">1</button>
+          <button class="page-btn">2</button>
+          <button class="page-btn">3</button>
+          <button class="page-btn">›</button>
+          <span class="info">共 26 条 · 每页 10 条</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== 分配角色弹窗（user:assign_roles） ==================== -->
+<div class="modal-overlay" id="assignRolesModal">
+  <div class="modal">
+    <div class="modal-head"><h3>分配角色 — sysadmin</h3><button class="close" data-close-modal="assignRolesModal">×</button></div>
+    <div class="modal-body">
+      <div class="form-item">
+        <label>选择角色 <span class="req">*</span></label>
+        <div class="hint" style="margin-bottom:10px;">保存后调用 <code class="perm">PUT /users/{id}/roles</code>，后端将精确失效该用户权限缓存（FR-4）</div>
+        <label class="perm-check"><input type="checkbox" checked> <span class="badge badge-blue">系统管理员</span> 平台运营与配置，23 项权限</label>
+        <label class="perm-check"><input type="checkbox"> <span class="badge badge-gray">普通用户</span> 各模块只读，9 项权限</label>
+        <label class="perm-check"><input type="checkbox"> <span class="badge badge-amber">知识库运营</span> 知识库管理，7 项权限</label>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-outline" data-close-modal="assignRolesModal">取消</button>
+      <button class="btn btn-primary" onclick="closeModal('assignRolesModal'); toast('角色已保存（Mock），用户权限缓存已失效')">保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== 创建用户弹窗（user:create） ==================== -->
+<div class="modal-overlay" id="createUserModal">
+  <div class="modal">
+    <div class="modal-head"><h3>创建用户</h3><button class="close" data-close-modal="createUserModal">×</button></div>
+    <div class="modal-body">
+      <div class="form-row">
+        <div class="form-item"><label>用户名 <span class="req">*</span></label><input class="input" placeholder="字母开头，3-20 位"></div>
+        <div class="form-item"><label>邮箱 <span class="req">*</span></label><input class="input" placeholder="name@chenguang.ai"></div>
+      </div>
+      <div class="form-item"><label>初始密码 <span class="req">*</span></label><input class="input" type="password" value="123456"><div class="hint">bcrypt 加密存储</div></div>
+      <div class="form-item"><label>初始角色</label>
+        <label class="perm-check"><input type="checkbox" checked> <span class="badge badge-gray">普通用户</span></label>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-outline" data-close-modal="createUserModal">取消</button>
+      <button class="btn btn-primary" onclick="closeModal('createUserModal'); toast('用户已创建（Mock）')">创建</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast"><span class="dot"></span><span class="msg"></span></div>
+<script src="assets/js/rbac-common.js"></script>
+<script>initShell('users');</script>
+</body>
+</html>
